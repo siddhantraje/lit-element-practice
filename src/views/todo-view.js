@@ -4,14 +4,13 @@ import "@vaadin/vaadin-button";
 import "@vaadin/vaadin-checkbox";
 import "@vaadin/vaadin-radio-button/vaadin-radio-button";
 import "@vaadin/vaadin-radio-button/vaadin-radio-group";
+import { VisibilityFilters } from '../redux/reducer'
+import { connect } from "pwa-helpers";
+import { store } from "../redux/store";
+import { updateFilter, addTodo, updateTodoStatus, clearCompleted } from "../redux/actions";
 
-const VisibilityFilters = {
-  SHOW_ALL: "All",
-  SHOW_ACTIVE: "Active",
-  SHOW_COMPLETED: "Completed",
-};
 
-class TodoView extends LitElement {
+class TodoView extends connect(store)(LitElement) {
   // this contains properties of component
   // it will return an object
   static get properties() {
@@ -20,6 +19,11 @@ class TodoView extends LitElement {
       filter: { type: String },
       task: { type: String },
     };
+  }
+
+  stateChanged(state){
+    this.todos = state.todos;
+    this.filter = state.filter;
   }
 
   // When any of these properties changes, render() will be executed
@@ -34,12 +38,11 @@ class TodoView extends LitElement {
   }
 
   render() {
-    return html`
-    
+    return html`    
       <div class="input-layout" @keyup="${this.shortcutListener}">
         <vaadin-text-field
           placeholder="Task"
-          value="${this.task}"
+          value="${this.task || ''}"
           @change="${this.updateTask}"
         >
         </vaadin-text-field>
@@ -79,11 +82,11 @@ class TodoView extends LitElement {
   }
 
   filterChanged(e){
-this.filter = e.target.value;
+store.dispatch(updateFilter(e.detail.value));
   }
 
   clearCompleted(){
-      this.todos = this.todos.filter(todo => !todo.complete)
+      store.dispatch(clearCompleted())
   }
 
   applyFilter(todos){
@@ -100,13 +103,7 @@ this.filter = e.target.value;
 
   addTodo() {
     if (this.task) {
-      this.todos = [
-        ...this.todos,
-        {
-          task: this.task,
-          complete: false,
-        },
-      ];
+      store.dispatch(addTodo(this.task));
       // always creating a new instance because if we just push the push, then LitElement will not be able to detect the change and render will not be executed again
       this.task = "";
     }
@@ -117,9 +114,7 @@ this.filter = e.target.value;
   }
 
   updateTodoStatus(updatedTodo, complete) {
-    this.todos = this.todos.map((todo) =>
-      updatedTodo === todo ? { ...updatedTodo, complete } : todo
-    );
+    store.dispatch(updateTodoStatus(updatedTodo, complete))
   }
 }
 
