@@ -47,6 +47,19 @@ class TodoView extends LitElement{
                 theme="primary"
                 @click="${this.addTodo}">Add Todo</vaadin-button>
           </div>
+
+          <div class="todos-list">
+              ${this.todos.map((todo) => html`
+                    <div class="todo-item">
+                        <vaadin-checkbox
+                        ?checked=${todo.complete}
+                        @change=${e => this.updateTodoStatus(todo, e.target.checked)}
+                        >${todo.task}
+                    </vaadin-checkbox>
+                        </div>   
+                  `
+              )}
+    </div>
         `;
     }
 
@@ -58,7 +71,7 @@ class TodoView extends LitElement{
         if(this.task){
             this.todos = [...this.todos, {
                 task: this.task,
-                completed: false
+                complete: false
             }];
         // always creating a new instance because if we just push the push, then LitElement will not be able to detect the change and render will not be executed again
         this.task ='';
@@ -68,6 +81,11 @@ class TodoView extends LitElement{
     shortcutListener(e){
 if(e.key === 'Enter')
 this.addTodo();
+    }
+
+    updateTodoStatus(updatedTodo, complete){
+        this.todos = this.todos.map( todo => 
+            updatedTodo === todo ? {...updatedTodo, complete} : todo)
     }
 
 }
